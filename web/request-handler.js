@@ -1,7 +1,7 @@
 var path = require('path');
 var url = require('url');
 var fs = require('fs');
-module.exports.datadir = path.resolve(__dirname, "../data/sites.txt"); // tests will need to override this.
+module.exports.datadir = path.join(__dirname, "../data/sites.txt"); // tests will need to override this.
 
 var headers = {
   "access-control-allow-origin": "*",
@@ -22,16 +22,22 @@ module.exports.handleRequest = function (req, res) {
           res.end();
         }
         res.writeHead(200, headers);
+        console.log(data);
         res.end(data);
       });
     } else {
       fs.readFile(__dirname + "/../data/sites" + pathname, function(err, data) {
-        if (err){
+        if (!data || err){
           res.writeHead(404, headers);
           res.end();
+        } else if (!data) {
+          res.writeHead(404, headers);
+          res.end();
+        } else {
+          res.writeHead(200, headers);
+          console.log(data);
+          res.end(data);
         }
-        res.writeHead(200, headers);
-        res.end(data);
       });
     }
   }
