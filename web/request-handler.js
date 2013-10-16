@@ -22,12 +22,11 @@ module.exports.handleRequest = function (req, res) {
           res.end();
         }
         res.writeHead(200, headers);
-        console.log(data);
         res.end(data);
       });
     } else {
       fs.readFile(__dirname + "/../data/sites" + pathname, function(err, data) {
-        if (!data || err){
+        if (err){
           res.writeHead(404, headers);
           res.end();
         } else if (!data) {
@@ -35,11 +34,25 @@ module.exports.handleRequest = function (req, res) {
           res.end();
         } else {
           res.writeHead(200, headers);
-          console.log(data);
           res.end(data);
         }
       });
     }
+  } else if (req.method === 'POST') {
+    var postData = '';
+    req.addListener('data',function(chunk){
+      postData += chunk;
+      console.log('******Recieved POST data chunk "'+chunk+ '".');
+    });
+    req.addListener('end',function(){
+      postData = postData.slice(4); // Cut off preceding "url=".
+      fs.writeFile(__dirname + "/../data/sites/" + postData, function(err, data) {
+        return "<html><head></head><body><script>alert('Youve been hacked!');</script></body></html>";
+      }());
+      res.writeHead(302, headers);
+      res.end();
+    });
   }
+
 };
 
