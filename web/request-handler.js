@@ -1,6 +1,7 @@
 var path = require('path');
 var url = require('url');
 var fs = require('fs');
+var httpGet = require('http-get');
 module.exports.datadir = path.join(__dirname, "../data/sites.txt"); // tests will need to override this.
 
 var headers = {
@@ -46,9 +47,14 @@ module.exports.handleRequest = function (req, res) {
     });
     req.addListener('end',function(){
       postData = postData.slice(4); // Cut off preceding "url=".
-      fs.writeFile(__dirname + "/../data/sites/" + postData, function(err, data) {
-        return "<html><head></head><body><script>alert('Youve been hacked!');</script></body></html>";
-      }());
+      //return "<html><head></head><body><script>alert('Youve been hacked!');</script></body></html>";
+      httpGet.get(postData, __dirname + "/../data/sites/" + postData, function (error, result) {
+      if (error) {
+        console.error(error);
+      } else {
+        console.log('File downloaded at: ' + result.file);
+      }
+      });
       res.writeHead(302, headers);
       res.end();
     });
