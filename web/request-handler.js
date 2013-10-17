@@ -2,6 +2,7 @@ var path = require('path');
 var url = require('url');
 var fs = require('fs');
 var httpGet = require('http-get');
+var sql = require('../sql/sql.js');
 module.exports.datadir = path.join(__dirname, "../data/sites.txt"); // tests will need to override this.
 
 var headers = {
@@ -46,18 +47,31 @@ module.exports.handleRequest = function (req, res) {
       console.log('******Recieved POST data chunk "'+chunk+ '".');
     });
     req.addListener('end',function(){
-      postData = postData.slice(4); // Cut off preceding "url=".
-      //return "<html><head></head><body><script>alert('Youve been hacked!');</script></body></html>";
-      httpGet.get(postData, __dirname + "/../data/sites/" + postData, function (error, result) {
-      if (error) {
-        console.error(error);
-      } else {
-        fs.appendFile(module.exports.datadir, postData + "\n", function(err) {
-          if (err) throw err;
-        });
-        console.log('File downloaded at: ' + result.file);
-      }
+      var readPath = postData.slice(4); // Cut off preceding "url=".
+      var writePath = __dirname + "/../data/sites/" + readPath;
+
+      // Download the file and store it locally.
+      httpGet.get(readPath, writePath, function (error, result) {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log('File downloaded at: ' + result.file);
+          fs.appendFile(module.exports.datadir, readPath + "\n", function(err) {
+            if (err) console.log("Could not append sites.txt with url.");
+          });
+          // Access the file we just created (inefficiency lulz) and put it in the database.
+          fs.readFile(writePath, function(err, data) {
+            if (err) {
+              console.log('File retrieval error, could not call sql insertion.');
+            } else {
+              sql.insert({url: readPath, webpage: data});
+              console.log("File inserted into database:");
+              console.log({url: readPath, webpage: data});
+            }
+          });
+        }
       });
+
       res.writeHead(302, headers);
       res.end();
     });
