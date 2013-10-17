@@ -30,5 +30,18 @@ var insert = function(data) {
   connection.end();
 };
 
+
+var update = function(url, webpage) {
+  var connection = makeConnection();
+  connection.connect();
+
+  connection.query("UPDATE webhistory SET webpage = ? where url = ?;", [webpage, url], function(err, results) {
+    if (err) console.log(err);
+  });
+
+  connection.end();
+};
+
 module.exports.insert = insert;
 module.exports.select = select;
+module.exports.update = update;

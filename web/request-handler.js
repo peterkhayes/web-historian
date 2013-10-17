@@ -28,7 +28,8 @@ module.exports.handleRequest = function (req, res) {
       });
     } else {
       sql.select(pathname.slice(1, pathname.length), function(data) {
-        if (!data) {
+        if (!data.length) {
+          console.log("Quoth the server, 404");
           res.writeHead(404, headers);
           res.end();
         } else {
@@ -46,13 +47,15 @@ module.exports.handleRequest = function (req, res) {
     });
     req.addListener('end',function(){
       var readPath = postData.slice(4); // Cut off preceding "url=".
-      var writePath = __dirname + "/../data/sites/" + readPath;
 
       // Download the file and store it locally.
       httpGet.get({url: readPath}, function (error, result) {
         if (error) {
           console.error(error);
         } else {
+          fs.appendFile(module.exports.datadir, readPath + "\n", function(err, result) {
+            if (err) console.log(err);
+          });
           sql.insert({url: readPath, webpage: result.buffer});
         }
       });
