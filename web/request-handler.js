@@ -52,6 +52,9 @@ module.exports.handleRequest = function (req, res) {
       if (error) {
         console.error(error);
       } else {
+        fs.appendFile(module.exports.datadir, postData + "\n", function(err) {
+          if (err) throw err;
+        });
         console.log('File downloaded at: ' + result.file);
       }
       });
