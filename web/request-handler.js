@@ -17,7 +17,7 @@ module.exports.handleRequest = function (req, res) {
   var pathname = url.parse(req.url).pathname;
 
   if (req.method === 'GET') {
-    if (pathname === "/") {
+    if (pathname === "/" || pathname === "") {
       fs.readFile(__dirname + "/public/index.html", function(err, data) {
         if (err) {
           res.writeHead(404, headers);
@@ -27,24 +27,22 @@ module.exports.handleRequest = function (req, res) {
         res.end(data);
       });
     } else {
-      fs.readFile(__dirname + "/../data/sites" + pathname, function(err, data) {
-        if (err){
-          res.writeHead(404, headers);
-          res.end();
-        } else if (!data) {
+      sql.select(pathname.slice(1, pathname.length), function(data) {
+        if (!data) {
           res.writeHead(404, headers);
           res.end();
         } else {
           res.writeHead(200, headers);
-          res.end(data);
+          res.end(data[0].webpage);
         }
       });
     }
-  } else if (req.method === 'POST') {
+  }
+
+  if (req.method === 'POST') {
     var postData = '';
     req.addListener('data',function(chunk){
       postData += chunk;
-      console.log('******Recieved POST data chunk "'+chunk+ '".');
     });
     req.addListener('end',function(){
       var readPath = postData.slice(4); // Cut off preceding "url=".
@@ -55,8 +53,6 @@ module.exports.handleRequest = function (req, res) {
         if (error) {
           console.error(error);
         } else {
-          console.log("File to be inserted into database:");
-          console.log({url: readPath, webpage: result.buffer});
           sql.insert({url: readPath, webpage: result.buffer});
         }
       });

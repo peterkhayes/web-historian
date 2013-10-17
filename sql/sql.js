@@ -7,25 +7,20 @@ var makeConnection = function() {
   });
 };
 
-var select = function(cb) {
-
+var select = function(url, cb) {
   var connection = makeConnection();
-
   connection.connect();
 
-  connection.query("SELECT * FROM webhistory", function(err, results) {
+  connection.query("SELECT webpage FROM webhistory WHERE url = '" + url + "'", function(err, results) {
     if (err) console.log(err);
     cb(results);
   });
 
   connection.end();
-
 };
 
 var insert = function(data) {
-
   var connection = makeConnection();
-
   connection.connect();
 
   connection.query("INSERT INTO webhistory SET ?", data, function(err, results) {
@@ -33,7 +28,6 @@ var insert = function(data) {
   });
 
   connection.end();
-
 };
 
 module.exports.insert = insert;
