@@ -10,4 +10,3 @@ module.exports.dataDir = path.join(__dirname, "../data/sites/");
 helpers.readUrls(module.exports.srcDir, function (urls) {
     helpers.downloadUrls(urls, module.exports.dataDir);
 });
-

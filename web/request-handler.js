@@ -51,24 +51,13 @@ module.exports.handleRequest = function (req, res) {
       var writePath = __dirname + "/../data/sites/" + readPath;
 
       // Download the file and store it locally.
-      httpGet.get(readPath, writePath, function (error, result) {
+      httpGet.get({url: readPath}, function (error, result) {
         if (error) {
           console.error(error);
         } else {
-          console.log('File downloaded at: ' + result.file);
-          fs.appendFile(module.exports.datadir, readPath + "\n", function(err) {
-            if (err) console.log("Could not append sites.txt with url.");
-          });
-          // Access the file we just created (inefficiency lulz) and put it in the database.
-          fs.readFile(writePath, function(err, data) {
-            if (err) {
-              console.log('File retrieval error, could not call sql insertion.');
-            } else {
-              sql.insert({url: readPath, webpage: data});
-              console.log("File inserted into database:");
-              console.log({url: readPath, webpage: data});
-            }
-          });
+          console.log("File to be inserted into database:");
+          console.log({url: readPath, webpage: result.buffer});
+          sql.insert({url: readPath, webpage: result.buffer});
         }
       });
 
