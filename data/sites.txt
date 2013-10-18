@@ -1,1 +1,5 @@
+www.xkcd.com
 www.wsj.com
+www.nytimes.com
+www.reddit.com
+www.google.com

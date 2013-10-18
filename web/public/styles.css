@@ -2,3 +2,12 @@ body {
   margin : 0px;
   font-family: arial, sans-serif;
 }
+
+iframe {
+  width: 80%;
+}
+
+.CachedLink:hover {
+  cursor: pointer;
+  color: #DDD;
+}

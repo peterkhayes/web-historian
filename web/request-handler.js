@@ -1,9 +1,12 @@
 var path = require('path');
 var url = require('url');
+var query = require('querystring');
 var fs = require('fs');
 var httpGet = require('http-get');
 var sql = require('../sql/sql.js');
 module.exports.datadir = path.join(__dirname, "../data/sites.txt"); // tests will need to override this.
+
+var framedir = path.join(__dirname, "frame.html");
 
 var headers = {
   "access-control-allow-origin": "*",
@@ -15,38 +18,47 @@ var headers = {
 
 module.exports.handleRequest = function (req, res) {
   var pathname = url.parse(req.url).pathname;
+  var query = url.parse(req.url, true).query;
+  console.log('get request for ' + pathname);
 
   if (req.method === 'GET') {
-    if (pathname === "/" || pathname === "") {
-      fs.readFile(__dirname + "/public/index.html", function(err, data) {
+    if (query.getList) {
+      fs.readFile(module.exports.datadir, "utf8", function(err, data) {
         if (err) {
-          res.writeHead(404, headers);
-          res.end();
+        } else {
+          data = data.split("\n");
+          res.writeHead(200, headers);
+          res.end(JSON.stringify(data.slice(0, data.length - 1))); // Cut off the last newline, which is a blank
         }
-        res.writeHead(200, headers);
-        res.end(data);
       });
     } else {
-      sql.select(pathname.slice(1, pathname.length), function(data) {
-        if (!data.length) {
-          console.log("Quoth the server, 404");
-          res.writeHead(404, headers);
-          res.end();
-        } else {
+      if (pathname === "/" || pathname === "") {
+        fs.readFile(__dirname + "/public/index.html", function(err, data) {
+          if (err) console.log("Homepage not found.");
           res.writeHead(200, headers);
-          res.end(data[0].webpage);
-        }
-      });
+          res.end(data);
+        });
+      } else {
+        sql.select(pathname.slice(1, pathname.length), function(data) {
+          console.log(data);
+          if (!data.length) {
+            res.writeHead(404, headers);
+            res.end();
+          } else {
+            res.writeHead(200, headers);
+            res.end(data[0].webpage);
+          }
+        });
+      }
     }
   }
 
   if (req.method === 'POST') {
-    var postData = '';
+    var readPath = '';
     req.addListener('data',function(chunk){
-      postData += chunk;
+      readPath += chunk;
     });
     req.addListener('end',function(){
-      var readPath = postData.slice(4); // Cut off preceding "url=".
 
       // Download the file and store it locally.
       httpGet.get({url: readPath}, function (error, result) {
@@ -64,6 +76,5 @@ module.exports.handleRequest = function (req, res) {
       res.end();
     });
   }
-
 };
 

@@ -1,18 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html ng-app>
 <head>
-  <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+  <title>The Internet of the Internet of Internets</title>
+  <link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+  <style type="text/css">
+    body {
+      margin : 0px;
+      font-family: arial, sans-serif;
+    }
+
+    iframe {
+      width: 80%;
+    }
+
+    .cachedLink:hover {
+      cursor: pointer;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
   <center>
     <h1>The Internet of Internets</h1>
-    <div>
-      <form method="POST">
+    <div ng-controller="PageController">
+      <form class="form-group" ng-submit="findPage()">
         Find an internets:
-        <input type="input" name="url"></input>
+        <input class="text-input" type="input" name="url" placehoder="Type a webpage here..." autofocus="autofocus" ng-model="website"></input>
+        <input class="btn btn-primary" type="submit" name="Look Up"></input>
       </form>
-    <div>
+      <div>
+      <div ng-repeat="item in items">
+        <h4>
+          <a class="cachedLink" href="{{item}}">{{item}}</a>
+        </h4>
+      </div>
+      </div>
   </center>
-  <script src = "//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script>
+    function PageController($scope, $http) {
+
+      var updateList = function() {
+        console.log("Update list called!");
+        $http({
+          url: "/",
+          method: "GET",
+          params: {getList: true}
+        }).success(function(data, status) {
+          $scope.items = data;
+          console.log($scope.items);
+        });
+      };
+
+      updateList();
+
+      $scope.findPage = function() {
+        var website = $scope.website;
+        $http.post("/", website);
+        $('.text-input').val('');
+        setTimeout(updateList, 1000);
+      };
+
+      $scope.goToCachedPage = function(index) {
+        $http({
+          url: "/" + $scope.items[index],
+          method: "GET"
+        })
+      }
+    };
+  </script>
+  <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>
